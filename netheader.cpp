@@ -3,9 +3,9 @@
 #include <QDebug>
 #include <time.h>
 
-QUEUE_DATA<MESG> queue_send; //�ı�����Ƶ���Ͷ���
-QUEUE_DATA<MESG> queue_recv; //���ն���
-QUEUE_DATA<MESG> audio_recv; //��Ƶ���ն���
+QUEUE_DATA<MESG> queue_send;
+QUEUE_DATA<MESG> queue_recv;
+QUEUE_DATA<MESG> audio_recv;
 
 LogQueue *logqueue = nullptr;
 
@@ -31,7 +31,7 @@ void log_print(const char *filename, const char *funcname, int line, const char 
             memset(log->ptr, 0, 1 * KB);
             time_t t = time(NULL);
             int pos = 0;
-            int m = strftime(log->ptr + pos, KB - 2 - pos, "%F %H:%M:%S ", localtime(&t));
+            int m = strftime(log->ptr + pos, KB - 2 - pos, "%Y-%m-%d %H:%M:%S ", localtime(&t));
 			pos += m;
 
             m = snprintf(log->ptr + pos, KB - 2 - pos, "%s:%s::%d>>>", filename, funcname, line);

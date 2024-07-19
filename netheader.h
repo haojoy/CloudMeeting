@@ -127,6 +127,15 @@ struct Log
 };
 
 
+inline void printbuf(uchar *buf, int len){
+    printf("buf content (hex):");
+    for (int i = 0; i < len; i++)
+    {
+        printf("%02X ", (unsigned char)buf[i]);
+    }
+    printf("\n");
+    fflush(stdout);
+}
 
 void log_print(const char *, const char *, int, const char *, ...);
 #define WRITE_LOG(LOGTEXT, ...) do{ \

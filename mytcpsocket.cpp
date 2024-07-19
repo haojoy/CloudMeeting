@@ -110,6 +110,8 @@ void MyTcpSocket::sendData(MESG* send)
 	bytestowrite += send->len;
 	sendbuf[bytestowrite++] = '#'; //结尾字符
 
+    printbuf(sendbuf, bytestowrite);
+
 	//----------------write to server-------------------------
 	qint64 hastowrite = bytestowrite;
 	qint64 ret = 0, haswrite = 0;
@@ -216,6 +218,7 @@ void MyTcpSocket::recvFromSocket()
     }
     hasrecvive += ret;
 
+    printbuf(recvbuf, hasrecvive);
     //数据包不够
     if (hasrecvive < MSG_HEADER)
     {
@@ -223,23 +226,21 @@ void MyTcpSocket::recvFromSocket()
     }
     else
     {
-        quint32 data_size;
-        qFromBigEndian<quint32>(recvbuf + 7, 4, &data_size);
+        quint32 data_size = qFromBigEndian<quint32>(recvbuf + 7);
+        // qFromBigEndian<quint32>(recvbuf + 7, 1, &data_size);
         if ((quint64)data_size + 1 + MSG_HEADER <= hasrecvive) //收够一个包
         {
             if (recvbuf[0] == '$' && recvbuf[MSG_HEADER + data_size] == '#') //且包结构正确
             {
 				MSG_TYPE msgtype;
-				uint16_t type;
-				qFromBigEndian<uint16_t>(recvbuf + 1, 2, &type);
+                uint16_t type = qFromBigEndian<quint16>(recvbuf + 1);
 				msgtype = (MSG_TYPE)type;
 				qDebug() << "recv data type: " << msgtype;
 				if (msgtype == CREATE_MEETING_RESPONSE || msgtype == JOIN_MEETING_RESPONSE || msgtype == PARTNER_JOIN2)
 				{
 					if (msgtype == CREATE_MEETING_RESPONSE)
 					{
-						qint32 roomNo;
-						qFromBigEndian<qint32>(recvbuf + MSG_HEADER, 4, &roomNo);
+                        qint32 roomNo = qFromBigEndian<qint32>(recvbuf + MSG_HEADER);
 
 						MESG* msg = (MESG*)malloc(sizeof(MESG));
 
@@ -323,7 +324,7 @@ void MyTcpSocket::recvFromSocket()
 								int pos = 0;
 								for (int i = 0; i < data_size / sizeof(uint32_t); i++)
 								{
-									qFromBigEndian<uint32_t>(recvbuf + MSG_HEADER + pos, sizeof(uint32_t), &ip);
+                                    ip = qFromBigEndian<uint32_t>(recvbuf + MSG_HEADER + pos);
 									memcpy_s(msg->data + pos, data_size - pos, &ip, sizeof(uint32_t));
 									pos += sizeof(uint32_t);
 								}
@@ -336,8 +337,7 @@ void MyTcpSocket::recvFromSocket()
                 else if (msgtype == IMG_RECV || msgtype == PARTNER_JOIN || msgtype == PARTNER_EXIT || msgtype == AUDIO_RECV || msgtype == CLOSE_CAMERA || msgtype == TEXT_RECV)
 				{
 					//read ipv4
-					quint32 ip;
-					qFromBigEndian<quint32>(recvbuf + 3, 4, &ip);
+                    quint32 ip = qFromBigEndian<quint32>(recvbuf + 3);
 
 					if (msgtype == IMG_RECV)
 					{
@@ -462,13 +462,14 @@ void MyTcpSocket::recvFromSocket()
                         }
                     }
                 }
+                memmove_s(recvbuf, 4 * MB, recvbuf + MSG_HEADER + data_size + 1, hasrecvive - ((quint64)data_size + 1 + MSG_HEADER));
+                hasrecvive -= ((quint64)data_size + 1 + MSG_HEADER);
 			}
             else
             {
                 qDebug() << "package error";
             }
-			memmove_s(recvbuf, 4 * MB, recvbuf + MSG_HEADER + data_size + 1, hasrecvive - ((quint64)data_size + 1 + MSG_HEADER));
-			hasrecvive -= ((quint64)data_size + 1 + MSG_HEADER);
+
         }
         else
         {
