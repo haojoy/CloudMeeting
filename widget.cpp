@@ -45,6 +45,7 @@ Widget::Widget(QWidget *parent)
     Widget::pos = QRect(0.1 * Screen::width, 0.1 * Screen::height, 0.8 * Screen::width, 0.8 * Screen::height);
 
     ui->setupUi(this);
+    setWindowTitle("CloudMeeting");
 
     ui->openAudio->setText(QString(OPENAUDIO).toUtf8());
     ui->openVedio->setText(QString(OPENVIDEO).toUtf8());
@@ -646,8 +647,8 @@ Partner* Widget::addPartner(quint32 ip)
         {
 			connect(this, SIGNAL(volumnChange(int)), _ainput, SLOT(setVolumn(int)), Qt::UniqueConnection);
 			connect(this, SIGNAL(volumnChange(int)), _aoutput, SLOT(setVolumn(int)), Qt::UniqueConnection);
-            ui->openAudio->setDisabled(false);
-            ui->sendmsg->setDisabled(false);
+            ui->openAudio->setEnabled(true);
+            ui->sendmsg->setEnabled(true);
             _aoutput->startPlay();
         }
 		return p;

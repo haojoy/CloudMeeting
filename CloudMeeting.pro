@@ -17,6 +17,7 @@ win32-msvc*:QMAKE_CXXFLAGS += /wd"4819" /utf-8
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+include(./qtsingleapplication/qtsingleapplication.pri)
 
 SOURCES += \
     AudioInput.cpp \
