@@ -45,7 +45,8 @@ MyTcpSocket::MyTcpSocket(QObject *par):QThread(par)
 
 void MyTcpSocket::errorDetect(QAbstractSocket::SocketError error)
 {
-    qDebug() <<"Sock error" <<QThread::currentThreadId();
+    qDebug() <<"Sock error: " << error <<QThread::currentThreadId();
+    WRITE_LOG("Sock error:%d", error);
     MESG * msg = (MESG *) malloc(sizeof (MESG));
     if (msg == NULL)
     {
@@ -489,7 +490,8 @@ MyTcpSocket::~MyTcpSocket()
 
 bool MyTcpSocket::connectServer(QString ip, QString port, QIODevice::OpenModeFlag flag)
 {
-    if(_socktcp == nullptr) _socktcp = new QTcpSocket(); //tcp
+    if(_socktcp == nullptr)
+        _socktcp = new QTcpSocket(this); //tcp
     _socktcp->connectToHost(ip, port.toUShort(), flag);
     connect(_socktcp, SIGNAL(readyRead()), this, SLOT(recvFromSocket()), Qt::UniqueConnection); //接受数据
     //处理套接字错误

@@ -141,9 +141,6 @@ Widget::Widget(QWidget *parent)
     te_font.setPointSize(12);
 
     ui->listWidget->setFont(te_font);
-
-    ui->tabWidget->setCurrentIndex(1);
-    ui->tabWidget->setCurrentIndex(0);
 }
 
 
@@ -377,8 +374,7 @@ void Widget::on_connServer_clicked()
     ui->outlog->setText("正在连接到" + ip + ":" + port);
     repaint();
 
-    QRegExp ipreg("((2{2}[0-3]|2[01][0-9]|1[0-9]{2}|0?[1-9][0-9]|0{0,2}[1-9])\\.)((25[0-5]|2[0-4][0-9]|[01]?[0-9]{0,2})\\.){2}(25[0-5]|2[0-4][0-9]|[01]?[0-9]{1,2})");
-
+    QRegExp ipreg("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)");
     QRegExp portreg("^([0-9]|[1-9]\\d|[1-9]\\d{2}|[1-9]\\d{3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])$");
     QRegExpValidator ipvalidate(ipreg), portvalidate(portreg);
     int pos = 0;
@@ -403,14 +399,14 @@ void Widget::on_connServer_clicked()
         ui->joinmeetBtn->setDisabled(false);
         WRITE_LOG("succeeed connecting to %s:%s", ip.toStdString().c_str(), port.toStdString().c_str());
         QMessageBox::warning(this, "Connection success", "成功连接服务器" , QMessageBox::Yes, QMessageBox::Yes);
-        ui->sendmsg->setDisabled(false);
+        //ui->sendmsg->setDisabled(false);
         ui->connServer->setDisabled(true);
     }
     else
     {
         ui->outlog->setText("连接失败,请重新连接...");
-        WRITE_LOG("failed to connenct %s:%s", ip.toStdString().c_str(), port.toStdString().c_str());
         QMessageBox::warning(this, "Connection error", _mytcpSocket->errorString() , QMessageBox::Yes, QMessageBox::Yes);
+        WRITE_LOG("failed to connenct %s:%s, error:%s", ip.toStdString().c_str(), port.toStdString().c_str(),_mytcpSocket->errorString().toStdString().c_str());
     }
 }
 
@@ -435,9 +431,6 @@ void Widget::datasolve(MESG *msg)
         if(roomno != 0)
         {
             QMessageBox::information(this, "Room No", QString("房间号：%1").arg(roomno), QMessageBox::Yes, QMessageBox::Yes);
-
-            ui->groupBox_2->setTitle(QString("主屏幕(房间号: %1)").arg(roomno));
-            ui->outlog->setText(QString("创建成功 房间号: %1").arg(roomno) );
             _createmeet = true;
             ui->exitmeetBtn->setDisabled(false);
             ui->openVedio->setDisabled(false);
@@ -447,7 +440,9 @@ void Widget::datasolve(MESG *msg)
             //添加用户自己
             addPartner(_mytcpSocket->getlocalip());
             mainip = _mytcpSocket->getlocalip();
-            ui->groupBox_2->setTitle(QHostAddress(mainip).toString());
+            QString showinfo = QString("ip: %1 roomno: %2").arg(QHostAddress(mainip).toString()).arg(roomno);
+            ui->groupBox_2->setTitle(showinfo);
+            ui->outlog->setText(showinfo);
             ui->mainshow_label->setPixmap(QPixmap::fromImage(QImage(":/myImage/1.jpg").scaled(ui->mainshow_label->size())));
         }
         else
@@ -586,7 +581,7 @@ void Widget::datasolve(MESG *msg)
     }
     else if(msg->msg_type == RemoteHostClosedError)
     {
-
+        WRITE_LOG("关闭与服务器的连接:%s", "RemoteHostClosedError");
         clearPartner();
         _mytcpSocket->disconnectFromHost();
         _mytcpSocket->wait();
@@ -605,11 +600,15 @@ void Widget::datasolve(MESG *msg)
         }
         iplist.clear();
         ui->plainTextEdit->setCompleter(iplist);
-        if(_createmeet || _joinmeet) QMessageBox::warning(this, "Meeting Information", "会议结束" , QMessageBox::Yes, QMessageBox::Yes);
+        if(_createmeet || _joinmeet){
+            _createmeet = false;
+            _joinmeet = false;
+            QMessageBox::warning(this, "Meeting Information", "会议结束" , QMessageBox::Yes, QMessageBox::Yes);
+        }
     }
     else if(msg->msg_type == OtherNetError)
     {
-        QMessageBox::warning(NULL, "Network Error", "网络异常" , QMessageBox::Yes, QMessageBox::Yes);
+        WRITE_LOG("网络异常:%s", "OtherNetError");
         clearPartner();
         _mytcpSocket->disconnectFromHost();
         _mytcpSocket->wait();
@@ -739,17 +738,24 @@ void Widget::recvip(quint32 ip)
 void Widget::on_joinmeetBtn_clicked()
 {
     QString roomNo = ui->meetno->text();
-
     QRegExp roomreg("^[1-9][0-9]{1,4}$");
-    QRegExpValidator  roomvalidate(roomreg);
+    QRegExpValidator roomvalidate(roomreg);
     int pos = 0;
+    QPalette palette = ui->meetno->palette();
     if(roomvalidate.validate(roomNo, pos) != QValidator::Acceptable)
     {
+        // 如果房间号不合法，设置输入框边框为红色
+        palette.setColor(QPalette::Text, Qt::red);
+        ui->meetno->setPalette(palette);
+        ui->outlog->setText("输入的房间号不合法! 请确认");
         QMessageBox::warning(this, "RoomNo Error", "房间号不合法" , QMessageBox::Yes, QMessageBox::Yes);
     }
     else
     {
-        //加入发送队列
+        // 如果房间号合法，恢复默认边框颜色
+        palette.setColor(QPalette::Text, Qt::black);
+        ui->meetno->setPalette(palette);
+        ui->outlog->clear();
         emit PushText(JOIN_MEETING, roomNo);
     }
 }
