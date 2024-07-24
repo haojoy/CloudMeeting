@@ -435,6 +435,7 @@ void Widget::datasolve(MESG *msg)
             ui->exitmeetBtn->setDisabled(false);
             ui->openVedio->setDisabled(false);
             ui->joinmeetBtn->setDisabled(true);
+            ui->sendmsg->setEnabled(true);
 
             WRITE_LOG("succeed creating room %d", roomno);
             //添加用户自己

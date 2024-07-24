@@ -56,7 +56,12 @@ void MyTextEdit::changeCompletion(QString text)
 
     QString str = edit->toPlainText();
     int pos = str.size() - 1;
-    while(str.at(pos) != '@') pos--;
+    while (pos >= 0 && str.at(pos) != '@') pos--;
+
+    // 确保位置在范围内
+    if (pos < 0 || pos >= str.size()) {
+        return;
+    }
 
     tc.clearSelection();
     tc.setPosition(pos, QTextCursor::MoveAnchor);
@@ -141,7 +146,12 @@ bool MyTextEdit::eventFilter(QObject *obj, QEvent *event)
                     else if(p >= ipspan[i].first && p <= ipspan[i].second)
                     {
                         QTextCursor tc = edit->textCursor();
-                        tc.setPosition(ipspan[i].second);
+                        // 确保位置在范围内
+                        if (ipspan[i].second < edit->toPlainText().size()) {
+                            tc.setPosition(ipspan[i].second);
+                        } else {
+                            tc.setPosition(edit->toPlainText().size() - 1);
+                        }
                         edit->setTextCursor(tc);
                     }
                 }

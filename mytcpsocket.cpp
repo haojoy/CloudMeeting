@@ -111,7 +111,7 @@ void MyTcpSocket::sendData(MESG* send)
 	bytestowrite += send->len;
 	sendbuf[bytestowrite++] = '#'; //结尾字符
 
-    printbuf(sendbuf, bytestowrite);
+    PRTNT_CONTEXT_HEX(sendbuf, bytestowrite);
 
 	//----------------write to server-------------------------
 	qint64 hastowrite = bytestowrite;
@@ -219,7 +219,7 @@ void MyTcpSocket::recvFromSocket()
     }
     hasrecvive += ret;
 
-    printbuf(recvbuf, hasrecvive);
+    PRTNT_CONTEXT_HEX(recvbuf, hasrecvive);
     //数据包不够
     if (hasrecvive < MSG_HEADER)
     {

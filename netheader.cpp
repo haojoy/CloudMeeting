@@ -48,3 +48,11 @@ void log_print(const char *filename, const char *funcname, int line, const char 
         }
     }
 }
+
+void convert_to_hex_string(uchar *sendbuf, size_t len, char *output, size_t output_size)
+{
+    size_t pos = 0;
+    for (size_t i = 0; i < len; i++) {
+        pos += snprintf(output + pos, output_size - pos, "%02X ", sendbuf[i]);
+    }
+}

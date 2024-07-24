@@ -126,16 +126,26 @@ struct Log
     uint len;
 };
 
+void convert_to_hex_string(uchar *sendbuf, size_t len, char *output, size_t output_size);
 
-inline void printbuf(uchar *buf, int len){
-    printf("buf content (hex):");
-    for (int i = 0; i < len; i++)
-    {
-        printf("%02X ", (unsigned char)buf[i]);
-    }
-    printf("\n");
-    fflush(stdout);
-}
+#define PRTNT_CONTEXT_HEX(sendbuf, len)\
+do{ \
+        char printbuf[3*len+1];\
+        convert_to_hex_string(sendbuf,len,printbuf,3*len+1);\
+        WRITE_LOG("sendbuf content (hex): %s", printbuf);\
+        qDebug() << printbuf;\
+}while(0);
+
+
+// inline void printbuf(uchar *buf, int len){
+//     printf("buf content (hex):");
+//     for (int i = 0; i < len; i++)
+//     {
+//         printf("%02X ", (unsigned char)buf[i]);
+//     }
+//     printf("\n");
+//     fflush(stdout);
+// }
 
 void log_print(const char *, const char *, int, const char *, ...);
 #define WRITE_LOG(LOGTEXT, ...) do{ \
